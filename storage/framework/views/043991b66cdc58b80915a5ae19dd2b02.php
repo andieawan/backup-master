@@ -1,0 +1,3 @@
+<?php ($D = \App\Support\Dates::class); ?>
+<?php if($uji): ?><div class="alert alert-info"><span class="alert-txt">Data per <b><?php echo e($D::waktu($uji->berkas?->waktu)); ?></b> (<?php echo e($uji->berkas->nama ?? '-'); ?>), dimuat <?php echo e($D::lalu($uji->waktu)); ?>.<?php if($uji->status === 'peringatan'): ?> <span class="warn">⚠ <?php echo e($uji->pesan); ?></span><?php endif; ?></span></div><?php endif; ?>
+<?php /**PATH /home/claude/backup-master/resources/views/jelajah/_kepala.blade.php ENDPATH**/ ?>
