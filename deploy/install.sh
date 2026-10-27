@@ -20,6 +20,7 @@ REPO="${REPO:-https://github.com/andieawan/backup-master.git}"
 ADMIN="${ADMIN:-admin}"
 DB_NAME=backup_master
 DB_USER=backup_master
+UJI_USER=backup_master_uji   # hanya untuk uji pulih & Jelajah Data: berhak atas bmj_* saja
 KUNCI_DIR=/var/lib/backup-master/.ssh
 
 info() { printf '\n\033[1;34m==> %s\033[0m\n' "$*"; }
@@ -75,7 +76,8 @@ NEW=0
 if [ ! -f .env ]; then
     NEW=1
     DB_PASS="$(sandi 24)"
-    info "Membuat database & user (boleh membuat database uji pulih bmj_*)"
+    UJI_PASS="$(sandi 24)"
+    info "Membuat database & dua user: $DB_USER (aplikasi) dan $UJI_USER (uji pulih, hanya bmj_*)"
     mysql <<SQL
 CREATE DATABASE IF NOT EXISTS \`$DB_NAME\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';
@@ -84,14 +86,19 @@ ALTER USER '$DB_USER'@'localhost' IDENTIFIED BY '$DB_PASS';
 ALTER USER '$DB_USER'@'127.0.0.1' IDENTIFIED BY '$DB_PASS';
 GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'localhost';
 GRANT ALL PRIVILEGES ON \`$DB_NAME\`.* TO '$DB_USER'@'127.0.0.1';
-GRANT ALL PRIVILEGES ON \`bmj\\_%\`.* TO '$DB_USER'@'localhost';
-GRANT ALL PRIVILEGES ON \`bmj\\_%\`.* TO '$DB_USER'@'127.0.0.1';
+CREATE USER IF NOT EXISTS '$UJI_USER'@'localhost' IDENTIFIED BY '$UJI_PASS';
+CREATE USER IF NOT EXISTS '$UJI_USER'@'127.0.0.1' IDENTIFIED BY '$UJI_PASS';
+ALTER USER '$UJI_USER'@'localhost' IDENTIFIED BY '$UJI_PASS';
+ALTER USER '$UJI_USER'@'127.0.0.1' IDENTIFIED BY '$UJI_PASS';
+GRANT ALL PRIVILEGES ON \`bmj\\_%\`.* TO '$UJI_USER'@'localhost';
+GRANT ALL PRIVILEGES ON \`bmj\\_%\`.* TO '$UJI_USER'@'127.0.0.1';
 FLUSH PRIVILEGES;
 SQL
     cp .env.example .env
     sed -i -e "s|^APP_URL=.*|APP_URL=http://${IP:-localhost}|" \
         -e "s|^DB_DATABASE=.*|DB_DATABASE=$DB_NAME|" -e "s|^DB_USERNAME=.*|DB_USERNAME=$DB_USER|" -e "s|^DB_PASSWORD=.*|DB_PASSWORD=$DB_PASS|" \
-        -e "s|^BM_LOKASI=.*|BM_LOKASI=\"$LOKASI\"|" -e "s|^BM_DATA_DIR=.*|BM_DATA_DIR=$DATA_DIR|" .env
+        -e "s|^BM_LOKASI=.*|BM_LOKASI=\"$LOKASI\"|" -e "s|^BM_DATA_DIR=.*|BM_DATA_DIR=$DATA_DIR|" \
+        -e "s|^BM_UJI_DB_USERNAME=.*|BM_UJI_DB_USERNAME=$UJI_USER|" -e "s|^BM_UJI_DB_PASSWORD=.*|BM_UJI_DB_PASSWORD=$UJI_PASS|" .env
     php artisan key:generate --force
     chown root:www-data .env; chmod 640 .env
 fi

@@ -116,10 +116,21 @@ class Periksa extends Command
                 foreach (Sumber::where('aktif', true)->where('terakhir_status', 'gagal')->get() as $x) {
                     $this->peringatkan("Sumber {$x->nama} gagal terakhir kali: ".mb_substr((string) $x->terakhir_pesan, 0, 200));
                 }
-                $c = config('database.connections.mysql');
-                [$k, , $err] = Jalankan::shell(implode(' ', array_map('escapeshellarg', [config('bm.mysql_bin', 'mysql'), '-h', (string) $c['host'], '-P', (string) $c['port'], '-u', (string) $c['username']]))
-                    .' -e '.escapeshellarg('CREATE DATABASE IF NOT EXISTS `'.config('bm.jelajah_prefix').'cek`; DROP DATABASE `'.config('bm.jelajah_prefix').'cek`'), 30, ['MYSQL_PWD' => (string) $c['password']]);
-                $k === 0 ? $this->ok('User DB boleh membuat database '.config('bm.jelajah_prefix').'* (uji pulih)') : $this->gagalkan('User DB tidak boleh membuat database uji pulih: '.Jalankan::ringkas($err, 160), "GRANT ALL ON `".config('bm.jelajah_prefix')."%`.* TO '".$c['username']."'@'localhost';");
+                $utama = config('database.connections.mysql');
+                if ((string) config('bm.uji_db_username') === '') {
+                    $this->gagalkan('BM_UJI_DB_USERNAME kosong: uji pulih MySQL tidak bisa berjalan', 'Jalankan ulang deploy/install.sh, atau buat user khusus yang hanya berhak atas '.config('bm.jelajah_prefix').'% (lihat docs/PASANG.md)');
+                } elseif (config('bm.uji_db_username') === $utama['username']) {
+                    $this->gagalkan('BM_UJI_DB_USERNAME sama dengan DB_USERNAME', 'Isi dump dari VM aplikasi bisa mengubah akun Backup Master. Pakai user terpisah.');
+                } else {
+                    $c = \App\Services\Backup\Pemulih::mysqlUji('mysql');
+                    $cli = implode(' ', array_map('escapeshellarg', [config('bm.mysql_bin', 'mysql'), '-h', (string) $c['host'], '-P', (string) $c['port'], '-u', (string) $c['username']]));
+                    $env = ['MYSQL_PWD' => (string) $c['password']];
+                    $p = config('bm.jelajah_prefix');
+                    [$k, , $err] = Jalankan::shell($cli.' -e '.escapeshellarg("CREATE DATABASE IF NOT EXISTS `{$p}cek`; DROP DATABASE `{$p}cek`"), 30, $env);
+                    $k === 0 ? $this->ok("User uji ({$c['username']}) boleh membuat database {$p}*") : $this->gagalkan('User uji tidak boleh membuat database uji pulih: '.Jalankan::ringkas($err, 160), "GRANT ALL ON `{$p}%`.* TO '{$c['username']}'@'localhost';");
+                    [$k] = Jalankan::shell($cli.' -e '.escapeshellarg('SELECT 1 FROM `'.$utama['database'].'`.`users` LIMIT 1'), 30, $env);
+                    $k !== 0 ? $this->ok('User uji tidak bisa membaca database Backup Master (aman)') : $this->gagalkan('User uji BISA membaca database Backup Master', "REVOKE ALL ON `{$utama['database']}`.* FROM '{$c['username']}'@'localhost';");
+                }
             } catch (\Throwable $e) {
                 $this->peringatkan('Pemeriksaan sumber dilewati: '.mb_substr($e->getMessage(), 0, 120));
             }

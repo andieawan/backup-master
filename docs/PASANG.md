@@ -18,7 +18,9 @@
 - **Selalu menarik.** Backup Master yang menghubungi sumber. Kunci SSH-nya di sumber dipaksa menjalankan `rrsync -ro`
   (baca saja, satu folder). VM aplikasi yang diretas tidak bisa menghapus backup di sini.
 - **Berkas lama tidak ditimpa.** Kalau berkas di sumber berubah (misalnya terenkripsi ransomware), salinan di sini tetap.
-- **Database aplikasi tidak pernah disentuh.** Uji pulih memuat dump ke database `bmj_<kode>` di mesin Backup Master sendiri.
+- **Database aplikasi tidak pernah disentuh.** Uji pulih memuat dump ke database `bmj_<kode>` di mesin Backup Master sendiri,
+  memakai user DB terpisah (`backup_master_uji`) yang hanya berhak atas `bmj_*`. Dump dari VM yang diretas tidak bisa
+  mengubah akun atau katalog Backup Master.
 - **Jangan dibuka ke internet.** Nginx hanya menerima jaringan lokal. Dari luar, gunakan VPN.
 
 > Backup Master melengkapi, tidak menggantikan, backup VM bawaan Proxmox (vzdump). Aktifkan juga vzdump mingguan

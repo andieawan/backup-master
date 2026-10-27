@@ -25,7 +25,7 @@ class Status
             if (! $db) {
                 $masalah[] = 'Belum ada backup database.';
             } elseif ($umur > $batas) {
-                $masalah[] = 'Backup database terbaru berumur '.Dates::lalu($db->waktu).'.';
+                $masalah[] = 'Backup database terbaru dibuat '.Dates::lalu($db->waktu).'.';
             }
             if ($db && $db->utuh === false) {
                 $masalah[] = 'Backup database terbaru tidak utuh: '.$db->pesan;

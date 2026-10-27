@@ -10,6 +10,7 @@ use App\Services\Backup\Katalog;
 use App\Services\Backup\Penarik;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
@@ -107,6 +108,20 @@ class TarikTest extends TestCase
         $this->assertDirectoryExists($this->tmp.'/data2/absensi/cermin/'.\App\Support\Dates::today());
         $this->assertSame('ok', UjiPulih::where('aplikasi', 'absensi')->value('status')); // salinan juga menguji pulih
         $this->assertStringContainsString('Berbeda dengan sumber', (string) $t->pesan);
+    }
+
+    public function test_uji_pulih_mysql_wajib_user_db_terpisah(): void
+    {
+        config(['bm.uji_db_username' => '']);
+        $gz = gzopen("$this->vm/backups/db_2026-10-27_0130.sql.gz", 'w');
+        gzwrite($gz, "CREATE TABLE t (id int);\nINSERT INTO t VALUES (1);\n");
+        gzclose($gz);
+        Penarik::tarik($this->sumber());
+        $u = UjiPulih::whereHas('berkas', fn ($q) => $q->where('nama', 'db_2026-10-27_0130.sql.gz'))->firstOrFail();
+        $this->assertSame('gagal', $u->status);
+        $this->assertStringContainsString('BM_UJI_DB_USERNAME', (string) $u->pesan);
+        $this->assertSame(1, Artisan::call('bm:periksa'));
+        $this->assertStringContainsString('BM_UJI_DB_USERNAME kosong', Artisan::output());
     }
 
     public function test_jadwal_jatuh_tempo(): void

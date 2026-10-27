@@ -31,6 +31,10 @@ return [
 
     // Database pemulihan (Jelajah Data): satu database per aplikasi, bmj_<kode>. User DB perlu hak penuh pada bmj\_%.
     'jelajah_prefix' => env('BM_JELAJAH_PREFIX', 'bmj_'),
+    // User DB KHUSUS uji pulih & Jelajah Data: hanya berhak atas bmj_*, TIDAK atas database Backup Master sendiri.
+    // Isi dump berasal dari VM aplikasi; bila VM itu diretas, dump-nya tidak boleh bisa menyentuh akun/katalog di sini.
+    'uji_db_username' => env('BM_UJI_DB_USERNAME', ''),
+    'uji_db_password' => env('BM_UJI_DB_PASSWORD', ''),
     'mysql_bin' => env('BM_MYSQL_BIN', 'mysql'),
 
     // Notifikasi Telegram (opsional): gagal tarik, backup terlalu tua, uji pulih gagal; plus ringkasan harian.

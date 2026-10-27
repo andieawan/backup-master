@@ -22,6 +22,17 @@ class Pemulih
         return config('bm.jelajah_prefix', 'bmj_').str_replace('-', '_', $kode);
     }
 
+    /** Koneksi MySQL memakai user uji (hanya bmj_*). Tanpa user uji, uji pulih MySQL ditolak demi keamanan. */
+    public static function mysqlUji(string $db): array
+    {
+        $u = (string) config('bm.uji_db_username');
+        if ($u === '') {
+            throw new \RuntimeException('BM_UJI_DB_USERNAME belum diisi: uji pulih database MySQL butuh user DB khusus yang hanya berhak atas '.config('bm.jelajah_prefix').'* (lihat docs/PASANG.md).');
+        }
+
+        return array_merge(config('database.connections.mysql'), ['database' => $db, 'username' => $u, 'password' => (string) config('bm.uji_db_password')]);
+    }
+
     private static function sqlite(Berkas $b): bool
     {
         return (bool) preg_match('/\.sqlite3?$/i', $b->nama);
@@ -39,7 +50,11 @@ class Pemulih
         if (is_file($sqlite) && ($uji->rincian['_sqlite'] ?? false)) {
             config(["database.connections.$nama" => ['driver' => 'sqlite', 'database' => $sqlite, 'prefix' => '', 'foreign_key_constraints' => false]]);
         } else {
-            config(["database.connections.$nama" => array_merge(config('database.connections.mysql'), ['database' => self::namaDb($a->kode)])]);
+            try {
+                config(["database.connections.$nama" => self::mysqlUji(self::namaDb($a->kode))]);
+            } catch (\RuntimeException) {
+                return null;
+            }
         }
         DB::purge($nama);
 
@@ -119,7 +134,7 @@ class Pemulih
         $nama = 'ujipulih_'.$b->aplikasi;
         config(["database.connections.$nama" => self::sqlite($b)
             ? ['driver' => 'sqlite', 'database' => $db, 'prefix' => '', 'foreign_key_constraints' => false]
-            : array_merge(config('database.connections.mysql'), ['database' => $db])]);
+            : self::mysqlUji($db)]);
         DB::purge($nama);
 
         return $nama;
@@ -139,8 +154,8 @@ class Pemulih
     /** gunzip -c dump | mysql bmj_<kode> (database dibuat ulang setiap uji). */
     private static function muatMysql(Berkas $b): string
     {
-        $c = config('database.connections.mysql');
         $db = self::namaDb($b->aplikasi);
+        $c = self::mysqlUji($db);
         if (! preg_match('/^[A-Za-z0-9_]+$/', $db)) {
             throw new \RuntimeException('Nama database jelajah tidak valid.');
         }
@@ -154,7 +169,7 @@ class Pemulih
         $baca = str_ends_with(strtolower($b->nama), '.gz') ? 'gunzip -c '.escapeshellarg($b->full()) : 'cat '.escapeshellarg($b->full());
         [$k, , $err] = Jalankan::shell($baca.' | '.$cli.' --default-character-set=utf8mb4 '.escapeshellarg($db), 7200, $env);
         if ($k !== 0) {
-            throw new \RuntimeException('Isi backup tidak bisa diimpor (rusak/terpotong): '.Jalankan::ringkas($err, 400));
+            throw new \RuntimeException('Isi backup tidak bisa diimpor (rusak, terpotong, atau berisi perintah di luar database uji): '.Jalankan::ringkas($err, 400));
         }
 
         return $db;
