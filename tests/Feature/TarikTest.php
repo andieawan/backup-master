@@ -38,7 +38,7 @@ class TarikTest extends TestCase
 
     private function sumber(): Sumber
     {
-        return Sumber::create(['kode' => 'absensi', 'nama' => 'Absensi', 'jenis' => 'aplikasi', 'folder' => $this->vm,
+        return Sumber::create(['kode' => 'jurnal', 'nama' => 'Jurnal', 'jenis' => 'aplikasi', 'folder' => $this->vm,
             'arsip' => 'backups', 'cermin' => 'private', 'jam' => '02:30', 'aktif' => true]);
     }
 
@@ -47,28 +47,28 @@ class TarikTest extends TestCase
         $t = Penarik::tarik($this->sumber());
         $this->assertSame('ok', $t->status, (string) $t->pesan);
         $this->assertStringContainsString('rusak_2026-10-20_0100.sql.gz', (string) $t->pesan);
-        $this->assertFileExists(Katalog::dir('absensi/arsip/absensi_2026-10-26T02-00-00.sqlite3'));
-        $this->assertFileDoesNotExist(Katalog::dir('absensi/arsip/abaikan.txt'));
-        $this->assertFileExists(Katalog::dir('absensi/cermin/'.\App\Support\Dates::today().'/bk-surat/s1.pdf'));
+        $this->assertFileExists(Katalog::dir('jurnal/arsip/absensi_2026-10-26T02-00-00.sqlite3'));
+        $this->assertFileDoesNotExist(Katalog::dir('jurnal/arsip/abaikan.txt'));
+        $this->assertFileExists(Katalog::dir('jurnal/cermin/'.\App\Support\Dates::today().'/bk-surat/s1.pdf'));
         $this->assertFalse(Berkas::where('nama', 'rusak_2026-10-20_0100.sql.gz')->value('utuh'));
         $this->assertSame(3, Berkas::count());
         $u = UjiPulih::firstOrFail();
         $this->assertSame('ok', $u->status);
         $this->assertSame(3, $u->tabel);
         $this->assertSame(2, $u->rincian['students']);
-        $this->assertSame('Absensi Siswa', Aplikasi::where('kode', 'absensi')->value('nama')); // dari templat
+        $this->assertSame('Jurnal Guru', Aplikasi::where('kode', 'jurnal')->value('nama')); // dari templat
         $this->assertFileExists(Katalog::dir('MANIFEST.json'));
-        $this->assertFileExists(Katalog::dir('absensi/info.json'));
+        $this->assertFileExists(Katalog::dir('jurnal/info.json'));
     }
 
     public function test_berkas_yang_sudah_ada_tidak_ditimpa_sumber(): void
     {
         $s = $this->sumber();
         Penarik::tarik($s);
-        $asli = hash_file('sha256', Katalog::dir('absensi/arsip/absensi_2026-10-26T02-00-00.sqlite3'));
+        $asli = hash_file('sha256', Katalog::dir('jurnal/arsip/absensi_2026-10-26T02-00-00.sqlite3'));
         file_put_contents("$this->vm/backups/absensi_2026-10-26T02-00-00.sqlite3", 'TERENKRIPSI RANSOMWARE');
         Penarik::tarik($s);
-        $this->assertSame($asli, hash_file('sha256', Katalog::dir('absensi/arsip/absensi_2026-10-26T02-00-00.sqlite3')));
+        $this->assertSame($asli, hash_file('sha256', Katalog::dir('jurnal/arsip/absensi_2026-10-26T02-00-00.sqlite3')));
     }
 
     public function test_retensi_menghapus_dan_tidak_menarik_ulang(): void
@@ -79,11 +79,11 @@ class TarikTest extends TestCase
         }
         $s = $this->sumber();
         Penarik::tarik($s);
-        $this->assertFileDoesNotExist(Katalog::dir('absensi/arsip/absensi_2026-10-01T02-00-00.sqlite3'));
-        $this->assertFileDoesNotExist(Katalog::dir('absensi/arsip/absensi_2026-10-24T02-00-00.sqlite3'));
-        $this->assertContains('absensi/arsip/absensi_2026-10-01T02-00-00.sqlite3', Katalog::terhapus());
+        $this->assertFileDoesNotExist(Katalog::dir('jurnal/arsip/absensi_2026-10-01T02-00-00.sqlite3'));
+        $this->assertFileDoesNotExist(Katalog::dir('jurnal/arsip/absensi_2026-10-24T02-00-00.sqlite3'));
+        $this->assertContains('jurnal/arsip/absensi_2026-10-01T02-00-00.sqlite3', Katalog::terhapus());
         Penarik::tarik($s->fresh());
-        $this->assertFileDoesNotExist(Katalog::dir('absensi/arsip/absensi_2026-10-01T02-00-00.sqlite3'));
+        $this->assertFileDoesNotExist(Katalog::dir('jurnal/arsip/absensi_2026-10-01T02-00-00.sqlite3'));
     }
 
     public function test_salinan_menarik_dari_master_dan_memeriksa_sha(): void
@@ -104,9 +104,9 @@ class TarikTest extends TestCase
         config(['bm.data_dir' => $this->tmp.'/data2']);
         $s = Sumber::create(['kode' => 'utama', 'nama' => 'Utama', 'jenis' => 'master', 'folder' => $utama, 'aktif' => true]);
         $t = Penarik::tarik($s);
-        $this->assertFileExists($this->tmp.'/data2/absensi/arsip/absensi_2026-10-26T02-00-00.sqlite3');
-        $this->assertDirectoryExists($this->tmp.'/data2/absensi/cermin/'.\App\Support\Dates::today());
-        $this->assertSame('ok', UjiPulih::where('aplikasi', 'absensi')->value('status')); // salinan juga menguji pulih
+        $this->assertFileExists($this->tmp.'/data2/jurnal/arsip/absensi_2026-10-26T02-00-00.sqlite3');
+        $this->assertDirectoryExists($this->tmp.'/data2/jurnal/cermin/'.\App\Support\Dates::today());
+        $this->assertSame('ok', UjiPulih::where('aplikasi', 'jurnal')->value('status')); // salinan juga menguji pulih
         $this->assertStringContainsString('Berbeda dengan sumber', (string) $t->pesan);
     }
 

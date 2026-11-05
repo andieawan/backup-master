@@ -3,12 +3,13 @@
 ## Gambaran
 
 ```
- VM Pusat ─┐
- VM Absensi┤                       ┌──────────────────────────┐        ┌───────────────────────┐
- VM BK     ├── tarik tiap malam ──▶│ UTAMA  (VM di Proxmox,   │◀─ tarik│ KOMPUTER SEKOLAH      │
- VM TU     │   (rsync, baca saja)  │ disk di HDD-BACKUP)      │        │ (salinan, mengejar    │
- VM PKL    │                       └──────────────────────────┘        │  saat dinyalakan)     │
- VM Website┘                                   ▲                       └───────────────────────┘
+ VM Pusat      ─┐
+ VM Website    ─┤
+ VM Jurnal     ─┤                       ┌──────────────────────────┐        ┌───────────────────────┐
+ VM BK         ─┼── tarik tiap malam ──▶│ UTAMA  (VM di Proxmox,   │◀─ tarik│ KOMPUTER SEKOLAH      │
+ VM TU         ─┤   (rsync, baca saja)  │ disk di HDD-BACKUP)      │        │ (salinan, mengejar    │
+ VM PKL        ─┤                       └──────────────────────────┘        │  saat dinyalakan)     │
+ VM Tanggungan ─┘                                   ▲                       └───────────────────────┘
                                                │ tarik lewat WireGuard (MikroTik)
                                        ┌───────┴───────┐
                                        │ VPS (salinan) │  ← bila anggaran disetujui
@@ -26,9 +27,19 @@
 > Backup Master melengkapi, tidak menggantikan, backup VM bawaan Proxmox (vzdump). Aktifkan juga vzdump mingguan
 > semua VM ke HDD-BACKUP (Datacenter → Backup), agar bisa memulihkan satu VM utuh.
 
+## Susunan IP
+
+| Mesin | IP |
+|---|---|
+| Router MikroTik | `192.168.10.254` |
+| Proxmox | `192.168.10.1` |
+| NPMplus | `192.168.10.10` |
+| Pusat / Website / Jurnal / BK / TU / PKL / Tanggungan | `.20` / `.21` / `.22` / `.23` / `.24` / `.25` / `.26` |
+| **Backup Master Utama** | `192.168.10.30` (tidak dibuka lewat NPMplus) |
+
 ## 1. Utama: VM di Proxmox (disk di HDD-BACKUP)
 
-1. Buat VM Ubuntu Server 24.04 dengan disk sistem 20 GB di SSD dan **disk kedua di storage HDD-BACKUP** (mis. 600 GB). Mount disk kedua di `/srv/backup-master`:
+1. Buat VM Ubuntu Server 24.04 (IP `192.168.10.30`) dengan disk sistem 20 GB di SSD dan **disk kedua di storage HDD-BACKUP** (mis. 600 GB). Mount disk kedua di `/srv/backup-master`:
    ```bash
    sudo mkfs.ext4 /dev/sdb && sudo mkdir -p /srv/backup-master
    echo '/dev/sdb /srv/backup-master ext4 defaults 0 2' | sudo tee -a /etc/fstab && sudo mount -a
@@ -40,7 +51,8 @@
    ```
    Catat password admin yang tampil. Buka `http://IP-VM/`. Pada login pertama Anda diminta mengatur verifikasi dua langkah
    (Google Authenticator / Microsoft Authenticator / Aegis).
-3. **Sumber → Tambah sumber → klik templat** (Pusat, Absensi, BK, TU, PKL, Website), isi **Host** = IP VM-nya, lalu Tambah.
+3. **Sumber → Tambah sumber → klik templat** (Pusat, Website, Jurnal, BK, TU, PKL, Tanggungan). Host, folder, dan jam tarik
+   sudah terisi sesuai susunan IP; periksa lalu Tambah.
 4. Halaman sumber menampilkan perintah `siapkan-sumber.sh`. **Jalankan perintah itu di VM aplikasinya**, misalnya:
    ```bash
    curl -fsSL https://raw.githubusercontent.com/andieawan/backup-master/main/deploy/siapkan-sumber.sh -o siapkan-sumber.sh
@@ -53,14 +65,16 @@ Folder bawaan per aplikasi (sudah terisi di templat):
 
 | Aplikasi | Folder di VM | Isi |
 |---|---|---|
-| Pusat | `/var/backups/pusat` | `pusat_*.sql.gz` (01:15) |
-| Absensi | `/var/www/absensi/storage/app` | `backups/absensi_*.sql` (02:00) + potret `private/` (scan surat BK/TU lama) |
-| BK | `/var/backups/bk-pusat` | `db_*`, `berkas_*` |
-| TU | `/var/backups/tu-pusat` | `db_*`, `berkas_*` (01:30) |
-| PKL | `/var/backups/pkl-pusat` | `db_*`, `berkas_*` (01:45, termasuk foto absen) |
-| Website | `/var/backups/smkibu` | `db_*`, `foto_*`, `images_*` |
+| Pusat (`.20`) | `/var/backups/pusat` | `pusat_*.sql.gz` (01:15) |
+| Website (`.21`) | `/var/backups/smkibu` | `db_*`, `foto_*`, `images_*` |
+| Jurnal Guru (`.22`) | `/var/www/jurnal/storage/app` | `backups/absensi_*.sql` (02:00) + potret `private/` (bahan ajar perangkat, scan surat lama) |
+| BK (`.23`) | `/var/backups/bk-pusat` | `db_*`, `berkas_*` |
+| TU (`.24`) | `/var/backups/tu-pusat` | `db_*`, `berkas_*` (01:30) |
+| PKL (`.25`) | `/var/backups/pkl-pusat` | `db_*`, `berkas_*` (01:45, termasuk foto absen) |
+| Tanggungan (`.26`) | `/var/backups/tanggungan` | `db_*`, `berkas_*` (01:45, kuitansi & tagihan) |
 
-Tarik bawaan pukul 02:30 (Absensi: atur 02:45 karena backupnya 02:00).
+Tarik bawaan pukul 02:30 (Jurnal 02:45 karena backupnya 02:00). Sumber Absensi lama tidak dipakai lagi; bila masih ada
+di daftar, nonaktifkan saja (riwayat backupnya tetap tersimpan).
 
 ## 2. Salinan: komputer sekolah
 

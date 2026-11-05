@@ -45,27 +45,30 @@ return [
     'wajib_2fa' => (bool) env('BM_WAJIB_2FA', true),
 
     // Kolom yang SELALU disembunyikan di Jelajah Data (pola regex, nama kolom).
-    'kolom_rahasia' => '/(password|passwd|remember_token|secret|token|api_key|kunci|two_factor|otp|hash)$/i',
+    'kolom_rahasia' => '/(password|passwd|remember_token|secret|token|api_key|_key|kunci|two_factor|otp|hash)$/i',
     // Tabel teknis yang tidak ditampilkan.
     'tabel_abaikan' => ['sessions', 'cache', 'cache_locks', 'jobs', 'job_batches', 'failed_jobs', 'password_reset_tokens', 'sso_kode', 'sso_token', 'login_attempts'],
 
     /*
      * Templat sumber. Folder = akar yang dibuka untuk Backup Master di VM sumber (dipasang deploy/siapkan-sumber.sh).
      * arsip = subfolder berisi berkas backup bertanggal; cermin = subfolder yang disalin utuh sebagai potret harian.
-     * app_dir & db dipakai untuk menyusun perintah pemulihan.
+     * app_dir & db dipakai untuk menyusun perintah pemulihan. host & jam = usulan isian (Susunan IP sekolah 192.168.10.x).
      */
     'templat' => [
-        'pusat' => ['nama' => 'Pusat Sekolah', 'folder' => '/var/backups/pusat', 'arsip' => '.', 'cermin' => null,
+        'pusat' => ['nama' => 'Pusat Sekolah', 'host' => '192.168.10.20', 'jam' => '02:30', 'folder' => '/var/backups/pusat', 'arsip' => '.', 'cermin' => null,
             'app_dir' => '/var/www/pusat-sekolah', 'db' => 'pusat', 'rahasia' => []],
-        'absensi' => ['nama' => 'Absensi Siswa', 'folder' => '/var/www/absensi/storage/app', 'arsip' => 'backups', 'cermin' => 'private',
-            'app_dir' => '/var/www/absensi', 'db' => 'absensi_siswa', 'rahasia' => ['bk_records']],
-        'bk' => ['nama' => 'Bimbingan Konseling', 'folder' => '/var/backups/bk-pusat', 'arsip' => '.', 'cermin' => null,
-            'app_dir' => '/var/www/bk-pusat', 'db' => 'bk_pusat', 'rahasia' => ['bk_catatan']],
-        'tu' => ['nama' => 'Tata Usaha', 'folder' => '/var/backups/tu-pusat', 'arsip' => '.', 'cermin' => null,
-            'app_dir' => '/var/www/tu-pusat', 'db' => 'tu_pusat', 'rahasia' => []],
-        'pkl' => ['nama' => 'Manajemen PKL', 'folder' => '/var/backups/pkl-pusat', 'arsip' => '.', 'cermin' => null,
-            'app_dir' => '/var/www/pkl-pusat', 'db' => 'pkl_pusat', 'rahasia' => []],
-        'web' => ['nama' => 'Website Sekolah', 'folder' => '/var/backups/smkibu', 'arsip' => '.', 'cermin' => null,
+        'web' => ['nama' => 'Website Sekolah', 'host' => '192.168.10.21', 'jam' => '02:30', 'folder' => '/var/backups/smkibu', 'arsip' => '.', 'cermin' => null,
             'app_dir' => '/var/www/web-pusat', 'db' => 'smk_ibu', 'rahasia' => []],
+        // Jurnal Guru (pengganti Absensi): backup 02:00 di storage/app/backups (absensi_*.sql); potret private/ = bahan ajar & scan surat.
+        'jurnal' => ['nama' => 'Jurnal Guru', 'host' => '192.168.10.22', 'jam' => '02:45', 'folder' => '/var/www/jurnal/storage/app', 'arsip' => 'backups', 'cermin' => 'private',
+            'app_dir' => '/var/www/jurnal', 'db' => 'jurnal_guru', 'rahasia' => ['bk_records']],
+        'bk' => ['nama' => 'Bimbingan Konseling', 'host' => '192.168.10.23', 'jam' => '02:30', 'folder' => '/var/backups/bk-pusat', 'arsip' => '.', 'cermin' => null,
+            'app_dir' => '/var/www/bk-pusat', 'db' => 'bk_pusat', 'rahasia' => ['bk_catatan']],
+        'tu' => ['nama' => 'Tata Usaha', 'host' => '192.168.10.24', 'jam' => '02:30', 'folder' => '/var/backups/tu-pusat', 'arsip' => '.', 'cermin' => null,
+            'app_dir' => '/var/www/tu-pusat', 'db' => 'tu_pusat', 'rahasia' => []],
+        'pkl' => ['nama' => 'Manajemen PKL', 'host' => '192.168.10.25', 'jam' => '02:30', 'folder' => '/var/backups/pkl-pusat', 'arsip' => '.', 'cermin' => null,
+            'app_dir' => '/var/www/pkl-pusat', 'db' => 'pkl_pusat', 'rahasia' => []],
+        'tanggungan' => ['nama' => 'Tanggungan Siswa', 'host' => '192.168.10.26', 'jam' => '02:30', 'folder' => '/var/backups/tanggungan', 'arsip' => '.', 'cermin' => null,
+            'app_dir' => '/var/www/tanggungan', 'db' => 'tanggungan', 'rahasia' => []],
     ],
 ];

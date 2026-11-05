@@ -1,6 +1,6 @@
 # Backup Master — SMKS Islam Bustanul Ulum Pakusari
 
-Satu tempat untuk **semua backup aplikasi sekolah** (Pusat, Absensi, BK, TU, PKL, Website):
+Satu tempat untuk **semua backup aplikasi sekolah** (Pusat, Website, Jurnal Guru, BK, TU, PKL, Tanggungan Siswa):
 
 - **Menarik** backup harian dari setiap VM lewat rsync/SSH, dengan akses baca-saja (sumber tidak bisa menulis atau menghapus di sini).
 - **Memeriksa**: keutuhan berkas (gzip/sha256), umur backup, **uji pulih otomatis** ke database terpisah, perbandingan jumlah baris.

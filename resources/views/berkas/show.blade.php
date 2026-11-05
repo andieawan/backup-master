@@ -44,6 +44,6 @@
         <p style="margin:12px 0 4px"><b>{{ $i + 1 }}. {{ $l['judul'] }}</b> <small class="mut">— di {{ $l['di'] }}</small></p>
         <pre class="mono" style="white-space:pre-wrap;word-break:break-all;font-size:12.5px;background:#0f172a;color:#e2e8f0;padding:10px;border-radius:10px;user-select:all">{{ $l['perintah'] }}</pre>
     @endforeach
-    <small class="mut">Ganti &lt;admin&gt; dengan user Anda di VM. Absensi juga punya skrip sendiri: <code>sudo bash deploy/restore.sh</code>.</small>
+    <small class="mut">Ganti &lt;admin&gt; dengan user Anda di VM. Jurnal Guru juga punya skrip sendiri: <code>sudo bash deploy/restore.sh</code>.</small>
 </details>
 @endsection

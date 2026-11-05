@@ -32,7 +32,7 @@ class WebTest extends TestCase
         file_put_contents("$t/vm/private/bk/s.pdf", '%PDF cermin');
         config(['bm.wajib_2fa' => false]);
         $this->admin = User::create(['username' => 'admin', 'nama' => 'Admin', 'roles' => ['admin'], 'aktif' => true, 'password' => 'password-panjang-12']);
-        Penarik::tarik(Sumber::create(['kode' => 'absensi', 'nama' => 'Absensi', 'jenis' => 'aplikasi', 'folder' => "$t/vm",
+        Penarik::tarik(Sumber::create(['kode' => 'jurnal', 'nama' => 'Jurnal', 'jenis' => 'aplikasi', 'folder' => "$t/vm",
             'arsip' => 'backups', 'cermin' => 'private', 'aktif' => true]));
     }
 
@@ -62,26 +62,26 @@ class WebTest extends TestCase
         $rahasia = session('totp_baru');
         $this->post('/akun/2fa', ['kode' => Totp::kode($rahasia)])->assertRedirect(route('beranda'));
         $this->assertTrue($this->admin->fresh()->punya2fa());
-        $this->get('/')->assertOk()->assertSee('Absensi Siswa');
+        $this->get('/')->assertOk()->assertSee('Jurnal Guru');
     }
 
     public function test_jelajah_menyembunyikan_kolom_rahasia(): void
     {
-        $this->actingAs($this->admin)->get('/jelajah/absensi')->assertOk()->assertSee('students');
-        $this->get('/jelajah/absensi/students?q=Ani')->assertOk()->assertSee('Ani')->assertDontSee('Budi');
-        $r = $this->get('/jelajah/absensi/users')->assertOk()->assertSee('admin');
+        $this->actingAs($this->admin)->get('/jelajah/jurnal')->assertOk()->assertSee('students');
+        $this->get('/jelajah/jurnal/students?q=Ani')->assertOk()->assertSee('Ani')->assertDontSee('Budi');
+        $r = $this->get('/jelajah/jurnal/users')->assertOk()->assertSee('admin');
         $r->assertDontSee('RAHASIAHASH')->assertDontSee('tok123')->assertDontSee('remember_token');
-        $this->get('/jelajah/absensi/users/1')->assertOk()->assertDontSee('RAHASIAHASH');
-        $this->get('/jelajah/absensi/tabel_tidak_ada')->assertRedirect();
+        $this->get('/jelajah/jurnal/users/1')->assertOk()->assertDontSee('RAHASIAHASH');
+        $this->get('/jelajah/jurnal/tabel_tidak_ada')->assertRedirect();
     }
 
     public function test_tabel_rahasia_butuh_alasan_dan_tercatat(): void
     {
-        $this->actingAs($this->admin)->get('/jelajah/absensi/bk_records')->assertOk()->assertSee('Tulis alasan')->assertDontSee('catatan konseling rahasia');
-        $this->get('/jelajah/absensi/bk_records/1')->assertForbidden();
-        $this->post('/jelajah/absensi/bk_records/alasan', ['alasan' => 'iseng'])->assertSessionHas('error');
-        $this->post('/jelajah/absensi/bk_records/alasan', ['alasan' => 'memeriksa pemulihan server BK'])->assertRedirect();
-        $this->get('/jelajah/absensi/bk_records')->assertOk()->assertSee('catatan konseling rahasia');
+        $this->actingAs($this->admin)->get('/jelajah/jurnal/bk_records')->assertOk()->assertSee('Tulis alasan')->assertDontSee('catatan konseling rahasia');
+        $this->get('/jelajah/jurnal/bk_records/1')->assertForbidden();
+        $this->post('/jelajah/jurnal/bk_records/alasan', ['alasan' => 'iseng'])->assertSessionHas('error');
+        $this->post('/jelajah/jurnal/bk_records/alasan', ['alasan' => 'memeriksa pemulihan server BK'])->assertRedirect();
+        $this->get('/jelajah/jurnal/bk_records')->assertOk()->assertSee('catatan konseling rahasia');
         $this->assertTrue(AuditLog::where('aksi', 'Buka tabel rahasia')->where('rincian', 'like', '%memeriksa pemulihan server BK%')->exists());
     }
 
@@ -104,8 +104,8 @@ class WebTest extends TestCase
 
     public function test_halaman_utama_dan_sumber(): void
     {
-        $this->actingAs($this->admin)->get('/')->assertOk()->assertSee('Absensi Siswa');
-        $this->get('/aplikasi/absensi')->assertOk()->assertSee('absensi_2026-10-26T02-00-00.sqlite3');
+        $this->actingAs($this->admin)->get('/')->assertOk()->assertSee('Jurnal Guru');
+        $this->get('/aplikasi/jurnal')->assertOk()->assertSee('absensi_2026-10-26T02-00-00.sqlite3');
         $this->get('/sumber')->assertOk();
         $this->get('/sumber?templat=tu')->assertOk()->assertSee('/var/backups/tu-pusat');
         $this->post('/sumber', ['jenis' => 'aplikasi', 'kode' => 'Bad Kode!', 'nama' => 'x', 'folder' => '/x'])->assertSessionHas('error');
@@ -114,16 +114,16 @@ class WebTest extends TestCase
         $this->get("/sumber/{$s->id}")->assertOk()->assertSee('siapkan-sumber.sh');
         $this->post("/sumber/{$s->id}/tarik")->assertRedirect();
         $this->assertTrue($s->fresh()->perlu_tarik);
-        $this->put('/aplikasi/absensi', ['nama' => 'Absensi', 'rahasia' => 'bk_records, students'])->assertRedirect();
-        $this->assertSame(['bk_records', 'students'], Aplikasi::where('kode', 'absensi')->first()->rahasia);
+        $this->put('/aplikasi/jurnal', ['nama' => 'Jurnal', 'rahasia' => 'bk_records, students'])->assertRedirect();
+        $this->assertSame(['bk_records', 'students'], Aplikasi::where('kode', 'jurnal')->first()->rahasia);
         $this->get('/audit')->assertOk()->assertSee('Tambah sumber');
     }
 
     public function test_perintah_konsol(): void
     {
-        $this->assertSame(0, Artisan::call('bm:uji', ['kode' => 'absensi']));
+        $this->assertSame(0, Artisan::call('bm:uji', ['kode' => 'jurnal']));
         $this->assertSame(0, Artisan::call('bm:ringkasan'));
-        $this->assertStringContainsString('Absensi Siswa', Artisan::output());
+        $this->assertStringContainsString('Jurnal Guru', Artisan::output());
         $this->assertSame(0, Artisan::call('bm:buat-admin', ['username' => 'kedua', '--password' => 'password-panjang-12']));
         $this->assertSame(1, Artisan::call('bm:buat-admin', ['username' => 'ketiga', '--password' => 'pendek']));
     }
