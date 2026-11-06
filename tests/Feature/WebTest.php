@@ -77,6 +77,7 @@ class WebTest extends TestCase
 
     public function test_tabel_rahasia_butuh_alasan_dan_tercatat(): void
     {
+        Aplikasi::where('kode', 'jurnal')->first()->update(['rahasia' => ['bk_records']]); // tabel rahasia diatur admin per aplikasi
         $this->actingAs($this->admin)->get('/jelajah/jurnal/bk_records')->assertOk()->assertSee('Tulis alasan')->assertDontSee('catatan konseling rahasia');
         $this->get('/jelajah/jurnal/bk_records/1')->assertForbidden();
         $this->post('/jelajah/jurnal/bk_records/alasan', ['alasan' => 'iseng'])->assertSessionHas('error');

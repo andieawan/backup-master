@@ -61,7 +61,7 @@ return [
             'app_dir' => '/var/www/web-pusat', 'db' => 'smk_ibu', 'rahasia' => []],
         // Jurnal Guru (pengganti Absensi): backup 02:00 di storage/app/backups (absensi_*.sql); potret private/ = bahan ajar & scan surat.
         'jurnal' => ['nama' => 'Jurnal Guru', 'host' => '192.168.10.22', 'jam' => '02:45', 'folder' => '/var/www/jurnal/storage/app', 'arsip' => 'backups', 'cermin' => 'private',
-            'app_dir' => '/var/www/jurnal', 'db' => 'jurnal_guru', 'rahasia' => ['bk_records']],
+            'app_dir' => '/var/www/jurnal', 'db' => 'jurnal_guru', 'rahasia' => []],
         'bk' => ['nama' => 'Bimbingan Konseling', 'host' => '192.168.10.23', 'jam' => '02:30', 'folder' => '/var/backups/bk-pusat', 'arsip' => '.', 'cermin' => null,
             'app_dir' => '/var/www/bk-pusat', 'db' => 'bk_pusat', 'rahasia' => ['bk_catatan']],
         'tu' => ['nama' => 'Tata Usaha', 'host' => '192.168.10.24', 'jam' => '02:30', 'folder' => '/var/backups/tu-pusat', 'arsip' => '.', 'cermin' => null,

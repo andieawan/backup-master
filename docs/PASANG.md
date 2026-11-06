@@ -116,7 +116,7 @@ Pemulihan sengaja dijalankan manual agar tidak ada salah tekan yang menimpa data
 ## Jelajah Data & privasi
 - Data yang tampil berasal dari **backup terakhir yang lolos uji pulih**, baca saja.
 - Kolom password, token, dan secret **selalu disembunyikan**.
-- Tabel rahasia (bawaan: `bk_catatan`, `bk_records`) hanya terbuka setelah admin menulis alasan. Alasannya tercatat di **Log**.
+- Tabel rahasia (bawaan: `bk_catatan` di BK; bisa ditambah per aplikasi) hanya terbuka setelah admin menulis alasan. Alasannya tercatat di **Log**.
 - Semua login, unduhan, dan pembukaan data tercatat di Log.
 
 ## Perintah berguna
