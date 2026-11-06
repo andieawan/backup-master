@@ -12,13 +12,14 @@ use Illuminate\Http\Request;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
         // Proxy tepercaya (TRUSTED_PROXIES) dipasang di AppServiceProvider dari config: callback ini berjalan
         // sebelum .env dimuat, sehingga env() di sini selalu kosong.
-        $middleware->alias(['akun.aktif' => AkunAktif::class, 'wajib2fa' => Wajib2fa::class]);
+        $middleware->alias(['akun.aktif' => AkunAktif::class, 'wajib2fa' => Wajib2fa::class, 'kunci.api' => \App\Http\Middleware\KunciApi::class]);
         $middleware->appendToGroup('web', HeaderKeamanan::class);
         $middleware->redirectGuestsTo(fn () => route('login'));
         $middleware->redirectUsersTo(fn () => route('beranda'));

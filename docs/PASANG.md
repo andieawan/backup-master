@@ -107,6 +107,13 @@ WOL Panel menyimpan datanya di berkas, bukan database. Sejak versi ini panel mem
 Tambahkan sumber dengan templat **WOL Panel**, lalu di container panel jalankan `siapkan-sumber.sh --folder /var/backups/wol-panel …`
 seperti aplikasi lain. Dasbor menilai kesehatannya dari arsip terbaru (kolom Database berisi *tanpa database*).
 
+## API untuk WOL Panel
+WOL Panel bisa menampilkan status backup tiap VM dan mengirim notifikasinya lewat bot Telegram Backup Master.
+Di `.env` Backup Master isi `BM_API_KUNCI` (buat dengan `openssl rand -hex 32`) dan `BM_API_IP=192.168.10.28`
+(IP WOL Panel), lalu `sudo -u www-data php artisan config:cache`. Di WOL Panel → Pengaturan → Umum → *Backup Master &
+notifikasi*: alamat `http://192.168.10.30` dan kunci yang sama. API hanya memberi ringkasan (waktu & masalah backup),
+tidak pernah isi data, dan hanya menerima IP yang terdaftar. Kosongkan `BM_API_KUNCI` untuk mematikannya.
+
 ## Notifikasi Telegram
 Buat bot lewat @BotFather, kirim pesan ke bot, ambil chat id (`https://api.telegram.org/bot<TOKEN>/getUpdates`). Isi di `.env`:
 ```

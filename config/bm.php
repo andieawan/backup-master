@@ -41,6 +41,11 @@ return [
     'telegram_token' => env('BM_TELEGRAM_TOKEN', ''),
     'telegram_chat' => env('BM_TELEGRAM_CHAT', ''),
 
+    // API untuk WOL Panel (status backup per aplikasi + meneruskan notifikasi ke Telegram di atas).
+    // Kosong = API mati. api_ip = IP yang boleh memanggil (pisah koma), mis. 192.168.10.28; kosong = semua IP.
+    'api_kunci' => env('BM_API_KUNCI', ''),
+    'api_ip' => env('BM_API_IP', ''),
+
     // Verifikasi dua langkah (aplikasi authenticator) wajib untuk semua admin.
     'wajib_2fa' => (bool) env('BM_WAJIB_2FA', true),
 
