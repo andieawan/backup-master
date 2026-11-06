@@ -18,24 +18,27 @@ class Status
         $hasil = [];
         foreach (Aplikasi::orderBy('nama')->get() as $a) {
             $q = fn ($j) => Berkas::where('aplikasi', $a->kode)->where('jenis', $j)->orderByDesc('waktu')->first();
-            $db = $q('db');
+            // Aplikasi tanpa database (mis. WOL Panel): kesegaran dinilai dari arsip terbaru.
+            $tanpaDb = (bool) config('bm.templat.'.$a->kode.'.tanpa_db', false);
+            $apa = $tanpaDb ? 'Backup' : 'Backup database';
+            $db = $q($tanpaDb ? 'arsip' : 'db');
             $uji = UjiPulih::where('aplikasi', $a->kode)->orderByDesc('id')->first();
             $umur = $db ? round((time() - $db->waktu->getTimestamp()) / 3600, 1) : null;
             $masalah = [];
             if (! $db) {
-                $masalah[] = 'Belum ada backup database.';
+                $masalah[] = 'Belum ada '.lcfirst($apa).'.';
             } elseif ($umur > $batas) {
-                $masalah[] = 'Backup database terbaru dibuat '.Dates::lalu($db->waktu).'.';
+                $masalah[] = $apa.' terbaru dibuat '.Dates::lalu($db->waktu).'.';
             }
             if ($db && $db->utuh === false) {
-                $masalah[] = 'Backup database terbaru tidak utuh: '.$db->pesan;
+                $masalah[] = $apa.' terbaru tidak utuh: '.$db->pesan;
             }
             if ($uji && $uji->status === 'gagal') {
                 $masalah[] = 'Uji pulih terakhir gagal: '.$uji->pesan;
             } elseif ($uji && $uji->status === 'peringatan') {
                 $masalah[] = 'Uji pulih: '.$uji->pesan;
             }
-            $hasil[] = ['a' => $a, 'db' => $db, 'arsip' => $q('arsip'), 'cermin' => $q('cermin'), 'uji' => $uji, 'umur' => $umur, 'masalah' => $masalah,
+            $hasil[] = ['a' => $a, 'db' => $tanpaDb ? null : $db, 'tanpa_db' => $tanpaDb, 'arsip' => $q('arsip'), 'cermin' => $q('cermin'), 'uji' => $uji, 'umur' => $umur, 'masalah' => $masalah,
                 'jumlah' => Berkas::where('aplikasi', $a->kode)->count(), 'ukuran' => (int) Berkas::where('aplikasi', $a->kode)->sum('ukuran')];
         }
 
@@ -55,7 +58,7 @@ class Status
     {
         $baris = [];
         foreach (self::semua() as $r) {
-            $baris[] = ($r['masalah'] ? '⚠️ ' : '✅ ').$r['a']->nama.': '.($r['db'] ? 'DB '.Dates::lalu($r['db']->waktu) : 'belum ada').($r['masalah'] ? ' — '.implode(' ', $r['masalah']) : '');
+            $baris[] = ($r['masalah'] ? '⚠️ ' : '✅ ').$r['a']->nama.': '.(($b = $r['tanpa_db'] ? $r['arsip'] : $r['db']) ? ($r['tanpa_db'] ? 'Arsip ' : 'DB ').Dates::lalu($b->waktu) : 'belum ada').($r['masalah'] ? ' — '.implode(' ', $r['masalah']) : '');
         }
         foreach (Sumber::where('aktif', true)->where('terakhir_status', 'gagal')->get() as $s) {
             $baris[] = "❌ Sumber {$s->nama}: {$s->terakhir_pesan}";

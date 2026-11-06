@@ -35,6 +35,7 @@
 | Proxmox | `192.168.10.1` |
 | NPMplus | `192.168.10.10` |
 | Pusat / Website / Jurnal / BK / TU / PKL / Tanggungan | `.20` / `.21` / `.22` / `.23` / `.24` / `.25` / `.26` |
+| WOL Panel (container LXC) | `192.168.10.28` |
 | **Backup Master Utama** | `192.168.10.30` (tidak dibuka lewat NPMplus) |
 
 ## 1. Utama: VM di Proxmox (disk di HDD-BACKUP)
@@ -99,6 +100,12 @@ VPS menarik dari Utama tanpa membuka port di sekolah: **WireGuard di MikroTik** 
    Di Utama: `siapkan-sumber.sh ... --dari 10.99.0.2`.
 
 Alternatif tanpa VPN: port-forward SSH Utama di MikroTik khusus dari IP VPS (dst-port acak, src-address = IP VPS).
+
+## WOL Panel (tanpa database)
+WOL Panel menyimpan datanya di berkas, bukan database. Sejak versi ini panel membuat arsip harian
+`/var/backups/wol-panel/wol_<tanggal>.tar.gz` (akun, daftar komputer, kunci agen, wallpaper, kunci SSH panel).
+Tambahkan sumber dengan templat **WOL Panel**, lalu di container panel jalankan `siapkan-sumber.sh --folder /var/backups/wol-panel …`
+seperti aplikasi lain. Dasbor menilai kesehatannya dari arsip terbaru (kolom Database berisi *tanpa database*).
 
 ## Notifikasi Telegram
 Buat bot lewat @BotFather, kirim pesan ke bot, ambil chat id (`https://api.telegram.org/bot<TOKEN>/getUpdates`). Isi di `.env`:

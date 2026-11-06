@@ -70,5 +70,9 @@ return [
             'app_dir' => '/var/www/pkl-pusat', 'db' => 'pkl_pusat', 'rahasia' => []],
         'tanggungan' => ['nama' => 'Tanggungan Siswa', 'host' => '192.168.10.26', 'jam' => '02:30', 'folder' => '/var/backups/tanggungan', 'arsip' => '.', 'cermin' => null,
             'app_dir' => '/var/www/tanggungan', 'db' => 'tanggungan', 'rahasia' => []],
+        // WOL Panel (container LXC): tanpa database — arsip harian wol_*.tar.gz berisi config.json (akun, komputer, kunci agen),
+        // vm.json, scan.json, wallpaper, dan kunci SSH panel. tanpa_db = kesehatan dinilai dari arsip terbaru.
+        'wol' => ['nama' => 'WOL Panel', 'host' => '192.168.10.28', 'jam' => '02:30', 'folder' => '/var/backups/wol-panel', 'arsip' => '.', 'cermin' => null,
+            'app_dir' => '/opt/wol-panel', 'db' => null, 'rahasia' => [], 'tanpa_db' => true],
     ],
 ];

@@ -138,4 +138,19 @@ class TarikTest extends TestCase
         $s->update(['perlu_tarik' => true, 'terakhir_status' => 'ok', 'terakhir_berhasil' => now()]);
         $this->assertTrue(Penarik::jatuhTempo()->contains('id', $s->id));
     }
+
+    public function test_wol_panel_tanpa_database_dinilai_dari_arsip(): void
+    {
+        $dir = dirname($this->vm).'/wol';
+        File::ensureDirectoryExists($dir);
+        $tgl = CarbonImmutable::now(\App\Support\Dates::tz())->format('Y-m-d_Hi');
+        exec('tar -czf '.escapeshellarg("$dir/wol_$tgl.tar.gz").' -C '.escapeshellarg(dirname($this->vm)).' vm-absensi');
+        $s = Sumber::create(['kode' => 'wol', 'nama' => 'WOL Panel', 'jenis' => 'aplikasi', 'folder' => $dir, 'arsip' => '.', 'cermin' => null, 'jam' => '02:30', 'aktif' => true]);
+        $this->assertSame('ok', Penarik::tarik($s)->status);
+        $r = collect(\App\Services\Backup\Status::semua())->first(fn ($x) => $x['a']->kode === 'wol');
+        $this->assertSame([[], null, true], [$r['masalah'], $r['db'], $r['tanpa_db']]);
+        $this->assertSame('/opt/wol-panel', Aplikasi::where('kode', 'wol')->value('app_dir'));
+        $langkah = \App\Services\Backup\Panduan::langkah(Berkas::where('aplikasi', 'wol')->firstOrFail());
+        $this->assertStringContainsString('systemctl stop wol-panel', $langkah[1]['perintah']);
+    }
 }

@@ -37,6 +37,10 @@ class Panduan
                 'perintah' => "sudo mysql -e \"DROP DATABASE \\`$db\\`; CREATE DATABASE \\`$db\\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci\"\n$impor"];
             $langkah[] = ['judul' => 'Selaraskan struktur & hidupkan lagi', 'di' => "VM $host",
                 'perintah' => "sudo -u www-data php artisan migrate --force\nsudo -u www-data php artisan optimize:clear\nsudo -u www-data php artisan up\nrm $tmp"];
+        } elseif (str_starts_with($b->nama, 'wol_')) {
+            // WOL Panel: isi arsip = isi /opt/wol-panel (config.json, vm.json, scan.json, wallpapers/, ssh/)
+            $langkah[] = ['judul' => 'Hentikan panel, bongkar arsip, lalu hidupkan lagi', 'di' => "Container $host",
+                'perintah' => "sudo systemctl stop wol-panel\nsudo tar -xzf $tmp -C $dir\nsudo chown -R wolpanel:wolpanel $dir && sudo chmod 600 $dir/config.json\nsudo systemctl start wol-panel\nrm $tmp"];
         } else {
             $ke = match (true) {
                 str_starts_with($b->nama, 'foto_') => "$dir/storage/app/public",

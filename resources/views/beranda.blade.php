@@ -21,7 +21,7 @@
     @foreach($status as $r)
         <tr><td class="card-title"><a href="{{ route('aplikasi.show', $r['a']) }}"><b>{{ $r['a']->nama }}</b></a> <small class="mut mono">{{ $r['a']->kode }}</small>
                 @foreach($r['masalah'] as $m)<br><small class="bad">⚠ {{ $m }}</small>@endforeach</td>
-            <td data-label="Database">@if($r['db'])<span @class(['ok' => ! $r['masalah'], 'warn' => (bool) $r['masalah']])>●</span> {{ $D::lalu($r['db']->waktu) }}<br><small class="mut">{{ $D::ukuran($r['db']->ukuran) }} · {{ $D::waktu($r['db']->waktu) }}</small>@else<span class="mut">–</span>@endif</td>
+            <td data-label="Database">@if($r['db'])<span @class(['ok' => ! $r['masalah'], 'warn' => (bool) $r['masalah']])>●</span> {{ $D::lalu($r['db']->waktu) }}<br><small class="mut">{{ $D::ukuran($r['db']->ukuran) }} · {{ $D::waktu($r['db']->waktu) }}</small>@else<span class="mut">{{ ($r['tanpa_db'] ?? false) ? 'tanpa database' : '–' }}</span>@endif</td>
             <td data-label="Berkas">@php($f = $r['cermin'] && (! $r['arsip'] || $r['cermin']->waktu > $r['arsip']->waktu) ? $r['cermin'] : $r['arsip'])@if($f){{ $D::lalu($f->waktu) }}<br><small class="mut">{{ \App\Models\Berkas::JENIS[$f->jenis] }}</small>@else<span class="mut">–</span>@endif</td>
             <td data-label="Uji pulih">@if($r['uji'])<span class="badge {{ ['ok' => 'b-ok', 'peringatan' => 'b-warn', 'gagal' => 'b-bad'][$r['uji']->status] }}">{{ ucfirst($r['uji']->status) }}</span><br><small class="mut">{{ $D::lalu($r['uji']->waktu) }} · {{ number_format($r['uji']->baris, 0, ',', '.') }} baris</small>@else<span class="mut">belum</span>@endif</td>
             <td data-label="Tersimpan">{{ $D::ukuran($r['ukuran']) }}<br><small class="mut">{{ $r['jumlah'] }} berkas</small></td></tr>
