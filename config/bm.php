@@ -42,7 +42,7 @@ return [
     'telegram_chat' => env('BM_TELEGRAM_CHAT', ''),
 
     // API untuk WOL Panel (status backup per aplikasi + meneruskan notifikasi ke Telegram di atas).
-    // Kosong = API mati. api_ip = IP yang boleh memanggil (pisah koma), mis. 192.168.10.28; kosong = semua IP.
+    // Kosong = API mati. api_ip = IP yang boleh memanggil (pisah koma), mis. 192.168.10.13 (WOL Panel); kosong = semua IP.
     'api_kunci' => env('BM_API_KUNCI', ''),
     'api_ip' => env('BM_API_IP', ''),
 
@@ -77,7 +77,7 @@ return [
             'app_dir' => '/var/www/tanggungan', 'db' => 'tanggungan', 'rahasia' => []],
         // WOL Panel (container LXC): tanpa database — arsip harian wol_*.tar.gz berisi config.json (akun, komputer, kunci agen),
         // vm.json, scan.json, wallpaper, dan kunci SSH panel. tanpa_db = kesehatan dinilai dari arsip terbaru.
-        'wol' => ['nama' => 'WOL Panel', 'host' => '192.168.10.28', 'jam' => '02:30', 'folder' => '/var/backups/wol-panel', 'arsip' => '.', 'cermin' => null,
+        'wol' => ['nama' => 'WOL Panel', 'host' => '192.168.10.13', 'jam' => '02:30', 'folder' => '/var/backups/wol-panel', 'arsip' => '.', 'cermin' => null,
             'app_dir' => '/opt/wol-panel', 'db' => null, 'rahasia' => [], 'tanpa_db' => true],
     ],
 ];
