@@ -5,6 +5,6 @@ Configuration: /home/runner/work/backup-master/backup-master/phpunit.xml
 
 ........................                                          24 / 24 (100%)
 
-Time: 00:04.922, Memory: 58.50 MB
+Time: 00:04.668, Memory: 58.50 MB
 
 OK (24 tests, 181 assertions)
