@@ -53,6 +53,27 @@ class JelajahController extends Controller
             'adaId' => in_array('id', $data['kolom'], true), 'uji' => $aplikasi->ujiTerakhir]);
     }
 
+    /** Unduh tabel (sesuai kata cari) sebagai .xlsx. Kolom rahasia tidak ikut; tabel rahasia tetap perlu alasan. */
+    public function ekspor(Request $request, Aplikasi $aplikasi, string $tabel)
+    {
+        $j = $this->penjelajah($aplikasi);
+        $j->pastikanTabel($tabel);
+        abort_unless($this->izin($request, $aplikasi, $tabel), 403);
+        $q = (string) $request->query('q');
+        $kolom = $j->kolom($tabel);
+        $baris = (function () use ($j, $tabel, $q, $kolom) {
+            yield $kolom;
+            foreach ($j->semua($tabel, $q) as $r) {
+                yield array_map(fn ($k) => $r->{$k}, $kolom);
+            }
+        })();
+        $berkas = \App\Support\XlsxTulis::berkas($baris, $tabel);
+        Audit::catat('Ekspor tabel', null, "{$aplikasi->kode}.$tabel".($q !== '' ? " (cari: $q)" : ''));
+
+        return response()->download($berkas, "{$aplikasi->kode}-$tabel-".now()->format('Ymd-His').'.xlsx',
+            ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'])->deleteFileAfterSend();
+    }
+
     public function baris(Request $request, Aplikasi $aplikasi, string $tabel, string $id)
     {
         $j = $this->penjelajah($aplikasi);

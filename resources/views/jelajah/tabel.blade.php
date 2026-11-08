@@ -7,7 +7,8 @@
 @include('jelajah._kepala')
 <form method="get" class="card filter-card"><div class="fields">
     <div class="field"><label for="q">Cari di semua kolom</label><input id="q" type="search" name="q" value="{{ $q }}" placeholder="nama, NIS, tanggal…"></div>
-    <div class="field"><button class="btn">Cari</button></div></div></form>
+    <div class="field"><button class="btn">Cari</button></div>
+    <div class="field"><a class="btn" href="{{ route('jelajah.ekspor', [$a, $tabel] + ($q !== '' ? ['q' => $q] : [])) }}" title="Unduh {{ $q !== '' ? 'hasil cari' : 'seluruh tabel' }} sebagai Excel (kolom rahasia tidak ikut)">Unduh Excel</a></div></div></form>
 <div class="card card-tight scroll"><table class="tbl" style="font-size:13px">
     <thead><tr>@foreach($d['kolom'] as $k)<th><a href="{{ $u(['urut' => $k, 'arah' => $d['urut'] === $k && $d['turun'] ? 'naik' : null, 'hal' => null]) }}" style="color:inherit">{{ $k }}{{ $d['urut'] === $k ? ($d['turun'] ? ' ↓' : ' ↑') : '' }}</a></th>@endforeach</tr></thead>
     <tbody>

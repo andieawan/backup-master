@@ -55,6 +55,63 @@ return [
     'tabel_abaikan' => ['sessions', 'cache', 'cache_locks', 'jobs', 'job_batches', 'failed_jobs', 'password_reset_tokens', 'sso_kode', 'sso_token', 'login_attempts'],
 
     /*
+     * Master App — Cari di semua aplikasi: tabel => kolom yang dicari (di salinan database hasil uji pulih).
+     * Kolom/tabel yang tidak ada di versi database tertentu dilewati. Tabel rahasia (lihat templat) hanya dihitung.
+     */
+    'cari' => [
+        'pusat' => ['siswa' => ['nama', 'nis', 'nisn'], 'pegawai' => ['nama', 'nip'], 'users' => ['nama', 'username', 'email']],
+        'jurnal' => ['students' => ['nama', 'nis'], 'users' => ['nama', 'username'], 'jurnal' => ['materi', 'kegiatan', 'catatan']],
+        'bk' => ['siswa' => ['nama', 'nis', 'nisn'], 'bk_catatan' => ['judul', 'uraian', 'tindak_lanjut']],
+        'tu' => ['siswa' => ['nama', 'nis', 'nisn'], 'pegawai' => ['nama', 'nip'], 'tu_surat' => ['nomor', 'pihak', 'perihal']],
+        'pkl' => ['siswa' => ['nama', 'nis', 'nisn'], 'pegawai' => ['nama', 'nip'], 'dudi' => ['nama', 'alamat', 'bidang']],
+        'tanggungan' => ['siswa' => ['nama', 'nis', 'nisn'], 'pembayaran' => ['nomor', 'penerima', 'catatan']],
+        'web' => ['berita' => ['judul', 'isi'], 'pengumuman' => ['judul', 'isi'], 'agenda' => ['judul'], 'staf' => ['nama', 'jabatan']],
+    ],
+
+    /*
+     * Master App — Profil siswa & guru lintas aplikasi, dikaitkan lewat UUID Pusat.
+     * tabel/kunci = baris orang itu di aplikasi tsb; bagian = data terkait: fk menunjuk id orang itu,
+     * via = [tabel perantara, kolom ke id orang] (fk lalu menunjuk id perantara), ambil = [tabel, kolom fk, [kolom]] untuk label.
+     */
+    'profil' => [
+        'siswa' => [
+            'pusat' => ['tabel' => 'siswa', 'kunci' => 'uuid', 'tampil' => ['nis', 'nisn', 'nama', 'jenis_kelamin', 'status', 'tempat_lahir', 'tanggal_lahir', 'no_hp', 'no_hp_ortu']],
+            'jurnal' => ['tabel' => 'students', 'kunci' => 'pusat_uuid', 'bagian' => [
+                ['judul' => 'Absensi', 'tabel' => 'attendance', 'fk' => 'student_id', 'kolom' => ['tanggal', 'status', 'notes'], 'urut' => 'tanggal'],
+                ['judul' => 'Nilai', 'tabel' => 'grade_values', 'fk' => 'student_id', 'kolom' => ['nilai'], 'ambil' => ['grade_activities', 'activity_id', ['tanggal_kegiatan', 'nama_kegiatan']]],
+            ]],
+            'bk' => ['tabel' => 'siswa', 'kunci' => 'pusat_uuid', 'bagian' => [
+                ['judul' => 'Catatan BK', 'tabel' => 'bk_catatan', 'fk' => 'siswa_id', 'kolom' => ['tanggal', 'jenis', 'kategori', 'judul', 'status'], 'urut' => 'tanggal'],
+            ]],
+            'tu' => ['tabel' => 'siswa', 'kunci' => 'pusat_uuid', 'bagian' => [
+                ['judul' => 'Mutasi', 'tabel' => 'mutasi_siswa', 'fk' => 'siswa_id', 'kolom' => ['tanggal', 'jenis', 'sekolah', 'alasan', 'nomor_surat'], 'urut' => 'tanggal'],
+                ['judul' => 'Surat', 'tabel' => 'tu_surat', 'fk' => 'siswa_id', 'kolom' => ['tanggal', 'nomor', 'perihal', 'status'], 'urut' => 'tanggal'],
+            ]],
+            'pkl' => ['tabel' => 'siswa', 'kunci' => 'pusat_uuid', 'bagian' => [
+                ['judul' => 'Penempatan PKL', 'tabel' => 'penempatan', 'fk' => 'siswa_id', 'kolom' => ['mulai', 'selesai', 'status'], 'ambil' => ['dudi', 'dudi_id', ['nama']], 'urut' => 'mulai'],
+                ['judul' => 'Absensi PKL', 'tabel' => 'absensi', 'via' => ['penempatan', 'siswa_id'], 'fk' => 'penempatan_id', 'kolom' => ['tanggal', 'status', 'jam_masuk', 'jam_pulang'], 'urut' => 'tanggal'],
+                ['judul' => 'Jurnal PKL', 'tabel' => 'jurnal', 'via' => ['penempatan', 'siswa_id'], 'fk' => 'penempatan_id', 'kolom' => ['tanggal', 'kegiatan', 'status'], 'urut' => 'tanggal'],
+            ]],
+            'tanggungan' => ['tabel' => 'siswa', 'kunci' => 'pusat_uuid', 'bagian' => [
+                ['judul' => 'Tagihan', 'tabel' => 'tagihan', 'fk' => 'siswa_id', 'kolom' => ['tahun_ajaran', 'jenis', 'bulan', 'nominal', 'potongan']],
+                ['judul' => 'Pembayaran', 'tabel' => 'pembayaran', 'fk' => 'siswa_id', 'kolom' => ['tanggal', 'nomor', 'total', 'cara', 'batal_pada'], 'urut' => 'tanggal'],
+            ]],
+        ],
+        'guru' => [
+            'pusat' => ['tabel' => 'pegawai', 'kunci' => 'uuid', 'tampil' => ['nip', 'nama', 'jenis', 'jabatan', 'email', 'no_hp', 'aktif']],
+            'jurnal' => ['tabel' => 'users', 'kunci' => 'pegawai_uuid', 'bagian' => [
+                ['judul' => 'Jurnal mengajar', 'tabel' => 'jurnal', 'fk' => 'user_id', 'kolom' => ['tanggal', 'jam_ke', 'materi'], 'urut' => 'tanggal'],
+                ['judul' => 'Kegiatan nilai', 'tabel' => 'grade_activities', 'fk' => 'teacher_id', 'kolom' => ['tanggal_kegiatan', 'nama_kegiatan', 'tipe_skala'], 'urut' => 'tanggal_kegiatan'],
+            ]],
+            'tu' => ['tabel' => 'pegawai', 'kunci' => 'pusat_uuid', 'bagian' => [
+                ['judul' => 'Absen pegawai', 'tabel' => 'absen_pegawai', 'fk' => 'pegawai_id', 'kolom' => ['tanggal', 'status', 'jam_masuk', 'jam_pulang', 'terlambat'], 'urut' => 'tanggal'],
+            ]],
+            'pkl' => ['tabel' => 'pegawai', 'kunci' => 'pusat_uuid', 'bagian' => []],
+            'tanggungan' => ['tabel' => 'pegawai', 'kunci' => 'pusat_uuid', 'bagian' => []],
+        ],
+    ],
+
+    /*
      * Templat sumber. Folder = akar yang dibuka untuk Backup Master di VM sumber (dipasang deploy/siapkan-sumber.sh).
      * arsip = subfolder berisi berkas backup bertanggal; cermin = subfolder yang disalin utuh sebagai potret harian.
      * app_dir & db dipakai untuk menyusun perintah pemulihan. host & jam = usulan isian (Susunan IP sekolah 192.168.10.x).

@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'Backup' }} · Backup Master {{ config('bm.lokasi') }}</title>
+    <title>{{ $title ?? 'Ringkasan' }} · Master App {{ config('bm.lokasi') }}</title>
     <script>document.documentElement.classList.add('js')</script>
     <link rel="stylesheet" href="{{ asset('assets/app.css') }}?v={{ @filemtime(public_path('assets/app.css')) }}">
     <meta name="theme-color" content="#0f766e">
@@ -34,13 +34,14 @@
         $initial = mb_strtoupper(mb_substr(trim(preg_replace('/^(Dra?\.|Drs\.|Ir\.|H\.|Hj\.)\s*/i', '', $me->nama)), 0, 1));
         $tabs = [
             ['beranda', [], 'Ringkasan', 'i-home', request()->routeIs('beranda', 'aplikasi.*', 'berkas.*')],
+            ['cari', [], 'Cari & Profil', 'i-users', request()->routeIs('cari', 'profil')],
             ['jelajah.index', [], 'Jelajah Data', 'i-eye', request()->routeIs('jelajah.*')],
             ['sumber.index', [], 'Sumber', 'i-folder', request()->routeIs('sumber.*')],
             ['audit', [], 'Log', 'i-clock', request()->routeIs('audit')],
         ];
     @endphp
     <header class="nav"><div class="nav-in">
-        <a class="brand" href="{{ route('beranda') }}"><img class="logo-img" src="{{ asset('icons/icon-192.png') }}" alt="" width="36" height="36"><span><b>Backup Master</b><small>{{ config('bm.lokasi') }} · {{ config('bm.school_name') }}</small></span></a>
+        <a class="brand" href="{{ route('beranda') }}"><img class="logo-img" src="{{ asset('icons/icon-192.png') }}" alt="" width="36" height="36"><span><b>Master App</b><small>{{ config('bm.lokasi') }} · {{ config('bm.school_name') }}</small></span></a>
         <nav class="tabs" aria-label="Menu utama">
             @foreach($tabs as [$r, $arg, $label, $icon, $on])
                 <a href="{{ route($r, $arg) }}" @if($on) class="on" aria-current="page" @endif><svg class="ic"><use href="#{{ $icon }}"/></svg>{{ $label }}</a>

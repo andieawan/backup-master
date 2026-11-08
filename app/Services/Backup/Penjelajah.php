@@ -84,6 +84,27 @@ class Penjelajah
         return ['kolom' => $kolom, 'baris' => $baris, 'total' => $total, 'halaman' => $halaman, 'per' => $per, 'urut' => $urut, 'turun' => $turun];
     }
 
+    /** Semua baris (sesuai kata cari) untuk ekspor, dibaca bertahap agar hemat memori. */
+    public function semua(string $t, string $cari = ''): \Generator
+    {
+        $kolom = $this->kolom($t);
+        $q = DB::connection($this->koneksi)->table($t);
+        $cari = trim($cari);
+        if ($cari !== '') {
+            $pola = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $cari).'%';
+            $q->where(function ($w) use ($kolom, $pola) {
+                foreach ($kolom as $c) {
+                    $w->orWhere($c, 'like', $pola);
+                }
+            });
+        }
+        $semua = Schema::connection($this->koneksi)->getColumnListing($t);
+        $q->orderBy(in_array('id', $semua, true) ? 'id' : $semua[0]); // lazy() butuh urutan tetap
+        foreach ($q->select($kolom)->lazy(2000) as $r) {
+            yield $r;
+        }
+    }
+
     public function satu(string $t, string $id): ?array
     {
         $kolom = $this->kolom($t);

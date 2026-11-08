@@ -44,6 +44,9 @@ Route::middleware(['auth', 'akun.aktif', 'wajib2fa'])->group(function () {
     Route::get('/jelajah/{aplikasi:kode}', [JelajahController::class, 'aplikasi'])->name('jelajah.aplikasi');
     Route::get('/jelajah/{aplikasi:kode}/{tabel}', [JelajahController::class, 'tabel'])->where('tabel', '[A-Za-z0-9_]+')->name('jelajah.tabel');
     Route::post('/jelajah/{aplikasi:kode}/{tabel}/alasan', [JelajahController::class, 'alasan'])->where('tabel', '[A-Za-z0-9_]+')->name('jelajah.alasan');
+    Route::get('/jelajah/{aplikasi:kode}/{tabel}/ekspor', [JelajahController::class, 'ekspor'])->where('tabel', '[A-Za-z0-9_]+')->middleware('throttle:20,1')->name('jelajah.ekspor');
+    Route::get('/cari', [\App\Http\Controllers\DataController::class, 'cari'])->middleware('throttle:60,1')->name('cari');
+    Route::get('/profil/{jenis}/{uuid}', [\App\Http\Controllers\DataController::class, 'profil'])->middleware('throttle:120,1')->name('profil');
     Route::get('/jelajah/{aplikasi:kode}/{tabel}/{id}', [JelajahController::class, 'baris'])->where('tabel', '[A-Za-z0-9_]+')->name('jelajah.baris');
 
     Route::get('/audit', AuditController::class)->name('audit');
