@@ -61,14 +61,22 @@ echo "$OPSI $KUNCI" >> "$AK.baru"
 mv "$AK.baru" "$AK"; chown "$USERNYA:$USERNYA" "$AK"; chmod 600 "$AK"
 
 SUDO="/etc/sudoers.d/backup-master-$USERNYA"
-{
-    echo "# Dibuat siapkan-sumber.sh: $USERNYA hanya boleh menjalankan rrsync baca-saja pada folder di bawah."
-    echo "Defaults:$USERNYA !requiretty"
-    echo "Defaults:$USERNYA env_keep += \"SSH_ORIGINAL_COMMAND\""
-    grep -h "^$USERNYA ALL" "$SUDO" 2>/dev/null | grep -v -F "$PERINTAH" || true
-    echo "$USERNYA ALL=(root) NOPASSWD: $PERINTAH"
-} > "$SUDO.baru"
-visudo -cf "$SUDO.baru" >/dev/null || { rm -f "$SUDO.baru"; gagal "Aturan sudo tidak valid."; }
+LAMA="$(grep -h "^$USERNYA ALL" "$SUDO" 2>/dev/null | grep -v -F "$PERINTAH" || true)"
+tulis_sudo() {  # $1 = baris Defaults
+    {
+        echo "# Dibuat siapkan-sumber.sh: $USERNYA hanya boleh menjalankan rrsync baca-saja pada folder di bawah."
+        echo "$1"
+        [ -n "$LAMA" ] && echo "$LAMA"
+        echo "$USERNYA ALL=(root) NOPASSWD: $PERINTAH"
+    } > "$SUDO.baru"
+    visudo -cf "$SUDO.baru" >/dev/null 2>&1
+}
+# rrsync membaca SSH_ORIGINAL_COMMAND, jadi variabel itu harus ikut lewat sudo. Tanpa "requiretty": tidak dikenal
+# sudo-rs (bawaan Ubuntu 25.10+) dan memang tidak aktif di Ubuntu/Debian. sudo-rs versi lama belum mengenal
+# "Defaults:user", maka dicoba versi khusus user dulu, lalu versi umum (hanya menambah satu variabel yang diteruskan).
+tulis_sudo "Defaults:$USERNYA env_keep += \"SSH_ORIGINAL_COMMAND\"" \
+    || tulis_sudo "Defaults env_keep += \"SSH_ORIGINAL_COMMAND\"" \
+    || { visudo -cf "$SUDO.baru" || true; rm -f "$SUDO.baru"; gagal "Aturan sudo tidak valid."; }
 mv "$SUDO.baru" "$SUDO"; chmod 440 "$SUDO"
 
 # sshd harus mengizinkan login kunci untuk user ini (AllowUsers yang ketat perlu ditambah manual).
