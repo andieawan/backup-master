@@ -36,11 +36,11 @@
 | NPMplus | `192.168.10.10` |
 | Pusat / Website / Jurnal / BK / TU / PKL / Tanggungan | `.20` / `.21` / `.22` / `.23` / `.24` / `.25` / `.26` |
 | WOL Panel (container LXC) | `192.168.10.28` |
-| **Backup Master Utama** | `192.168.10.30` (tidak dibuka lewat NPMplus) |
+| **Backup Master Utama** | `192.168.10.32` (tidak dibuka lewat NPMplus) |
 
 ## 1. Utama: VM di Proxmox (disk di HDD-BACKUP)
 
-1. Buat VM Ubuntu Server 24.04 (IP `192.168.10.30`) dengan disk sistem 20 GB di SSD dan **disk kedua di storage HDD-BACKUP** (mis. 600 GB). Mount disk kedua di `/srv/backup-master`:
+1. Buat VM Ubuntu Server 24.04 (IP `192.168.10.32`) dengan disk sistem 20 GB di SSD dan **disk kedua di storage HDD-BACKUP** (mis. 600 GB). Mount disk kedua di `/srv/backup-master`:
    ```bash
    sudo mkfs.ext4 /dev/sdb && sudo mkdir -p /srv/backup-master
    echo '/dev/sdb /srv/backup-master ext4 defaults 0 2' | sudo tee -a /etc/fstab && sudo mount -a
@@ -111,7 +111,7 @@ seperti aplikasi lain. Dasbor menilai kesehatannya dari arsip terbaru (kolom Dat
 WOL Panel bisa menampilkan status backup tiap VM dan mengirim notifikasinya lewat bot Telegram Backup Master.
 Di `.env` Backup Master isi `BM_API_KUNCI` (buat dengan `openssl rand -hex 32`) dan `BM_API_IP=192.168.10.28`
 (IP WOL Panel), lalu `sudo -u www-data php artisan config:cache`. Di WOL Panel → Pengaturan → Umum → *Backup Master &
-notifikasi*: alamat `http://192.168.10.30` dan kunci yang sama. API hanya memberi ringkasan (waktu & masalah backup),
+notifikasi*: alamat `http://192.168.10.32` dan kunci yang sama. API hanya memberi ringkasan (waktu & masalah backup),
 tidak pernah isi data, dan hanya menerima IP yang terdaftar. Kosongkan `BM_API_KUNCI` untuk mematikannya.
 
 ## Notifikasi Telegram
